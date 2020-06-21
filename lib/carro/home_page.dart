@@ -1,46 +1,42 @@
-import 'package:br/carro/carro.dart';
 import 'package:br/carro/carros_api.dart';
+import 'package:br/carro/carros_listview.dart';
 import 'package:br/widgets/drawer_list.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin <HomePage>{
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Carros"),
-      ),
-      body: _body(),
-      drawer: DrawerList(),
-    );
-  }
-
-  _body() {
-
-    List<Carro> carros = CarrosApi.getCarros();
-
-    return ListView.builder(
-        itemCount: carros.length,
-        itemBuilder: (context, index) {
-          Carro c = carros[index];
-
-          return Row(
-            children: <Widget>[
-              Image.network(
-                c.urlFoto,
-                width: 150,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Carros"),
+          bottom: TabBar(
+            tabs: <Widget>[
+              Tab(
+                text: "Classicos",
               ),
-              Flexible(
-                child: Text(
-                  c.nome,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 22),
-                ),
+              Tab(
+                text: "Esportivos",
+              ),
+              Tab(
+                text: "Luxo",
               ),
             ],
-          );
-
-        });
+          ),
+        ),
+        body: TabBarView(children: [
+          CarrosListView(TipoCarro.classicos),
+          CarrosListView(TipoCarro.esportivos),
+          CarrosListView(TipoCarro.luxo),
+        ]),
+        drawer: DrawerList(),
+      ),
+    );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:br/login/usuario.dart';
 import 'package:br/pages/api_response.dart';
 import 'package:br/carro/home_page.dart';
@@ -20,7 +22,19 @@ class _LoginPageState extends State<LoginPage> {
   final _tSenha = TextEditingController();
   final _focusSenha = FocusNode();
 
-  bool _showProgress = false;
+  final _streamController = StreamController<bool>();
+
+  @override
+  void initState() {
+    super.initState();
+    Future<Usuario> future = Usuario.get();
+    future.then((Usuario user){
+      if(user != null) {
+        push(context, HomePage(), replace: true);
+      }
+    });
+    
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +77,17 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               height: 20,
             ),
-            AppButton(
-                    "Login",
-                    onPressed:
-                    _onClickLogin,
-                    showProgress: _showProgress,),
+            StreamBuilder<bool>(
+              stream: _streamController.stream,
+              initialData: false,
+              builder: (context, snapshot) {
+                return AppButton(
+                        "Login",
+                        onPressed:
+                        _onClickLogin,
+                        showProgress: snapshot.data,);
+              }
+            ),
           ],
         ),
       ),
@@ -85,25 +105,19 @@ class _LoginPageState extends State<LoginPage> {
     String senha = _tSenha.text;
 
     print("Login: $login, Senha: $senha");
-
-    setState(() {
-      _showProgress = true;
-    });
+    
+    _streamController.sink.add(true);
 
     ApiResponse response = await LoginApi.login(login, senha);
 
     if (response.ok) {
-      Usuario user = response.result;
-
       print(">>> $response");
       push(context, HomePage(), replace: true);
     } else {
       alert(context, response.msg);
     }
 
-    setState(() {
-      _showProgress = false;
-    });
+    _streamController.sink.add(false);
 
   }
 
@@ -123,4 +137,11 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _streamController.close();
+  }
+
 }
